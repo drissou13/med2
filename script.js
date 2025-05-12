@@ -64,36 +64,43 @@ const questions = [
 let current = 0;
 let score = 0;
 
-document.getElementById("total").innerText = questions.length;
-
 function loadQuestion() {
   const q = questions[current];
   document.getElementById("question").innerText = q.question;
-  const buttons = document.querySelectorAll("#answers button");
-  buttons.forEach((btn, index) => {
-    btn.innerText = q.answers[index];
-    btn.disabled = false;
-  });
-  document.getElementById("feedback").innerText = "";
   document.getElementById("explanation").innerText = "";
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("total").innerText = questions.length;
+
+  const answersContainer = document.getElementById("answers");
+  answersContainer.innerHTML = "";
+
+  const shuffled = q.answers
+    .map((text, index) => ({ text, index }))
+    .sort(() => Math.random() - 0.5);
+
+  shuffled.forEach(({ text, index }) => {
+    const btn = document.createElement("button");
+    btn.innerText = text;
+    btn.onclick = () => checkAnswer(index);
+    answersContainer.appendChild(btn);
+  });
 }
 
-function checkAnswer(index) {
+function checkAnswer(selectedIndex) {
   const q = questions[current];
   const feedback = document.getElementById("feedback");
   const explanation = document.getElementById("explanation");
-  const buttons = document.querySelectorAll("#answers button");
 
-  buttons.forEach(btn => btn.disabled = true);
-
-  if (index === q.correct) {
+  if (selectedIndex === q.correct) {
     score++;
-    feedback.innerText = "✅ Bravo médiateur expert !";
+    feedback.innerText = "✅ Bonne réponse !";
+    feedback.style.color = "green";
   } else {
-    feedback.innerText = "❌ Oups, ce n’est pas la bonne réponse...";
+    feedback.innerText = "❌ Mauvaise réponse.";
+    feedback.style.color = "red";
   }
 
-  explanation.innerText = q.explanation;
+  explanation.innerText = "💡 " + q.explanation;
   document.getElementById("score").innerText = score;
 
   setTimeout(() => {
@@ -109,26 +116,40 @@ function checkAnswer(index) {
 function showFinal() {
   document.getElementById("question-container").style.display = "none";
   const msg = document.getElementById("final-message");
+  const resetBtn = document.getElementById("reset-btn");
+  resetBtn.style.display = "block";
+
   let appreciation;
+  const ratio = score / questions.length;
 
   if (score === questions.length) {
-    appreciation = "🌟 Ah, camarade du quotidien, tu as marché sur le fil de la compréhension sociale avec l’élégance d’un funambule républicain ! Tu n’as pas seulement répondu à des questions… tu as ouvert les fenêtres de la fraternité dans l immeuble du vivre-ensemble !R.Martin 30/10/1943-16/10/2023";
+    appreciation = "🌟 Ah, camarade du quotidien, tu as marché sur le fil de la compréhension sociale avec l’élégance d’un funambule républicain ! Tu n’as pas seulement répondu à des questions… tu as ouvert les fenêtres de la fraternité dans l’immeuble du vivre-ensemble ! – R. Martin (30/10/1943 - 16/10/2023)";
   } else if (score >= questions.length * 0.7) {
     appreciation = "👏 Très bon travail, tu mérites un badge de médiateur pro !";
   } else if (score >= questions.length * 0.4) {
-    appreciation = "💡Ah mon frère, c’est pas mal… C’est pas top top, mais c’est pas catastrophe non plus ! On va dire que tu es un médiateur en CDD, pas encore titulaire hein 😅 Tu connais un peu les règles, mais parfois tu règles avec la chance ! Continue comme ça, et bientôt tu pourras même expliquer la CAF… sans pleurer ! Saidou Abatcha " ;
+    appreciation = "💡 Ah mon frère, c’est pas mal… C’est pas top top, mais c’est pas catastrophe non plus ! On va dire que tu es un médiateur en CDD, pas encore titulaire hein 😅 Tu connais un peu les règles, mais parfois tu règles avec la chance ! Continue comme ça, et bientôt tu pourras même expliquer la CAF… sans pleurer ! – Saidou Abatcha";
   } else {
-    appreciation = "😅 On va dire que t’as confondu avec une émission de télé-réalité...";
+    appreciation = "😅 On va dire que t’as confondu avec une émission de télé-réalité... Mais t’inquiète, avec un peu de médiation et beaucoup de café, tout s’apprend !";
   }
-document.getElementById("reset-btn").style.display = "block";
 
-// Option : redémarrage automatique après 20 sec
-setTimeout(() => {
-  resetGame();
-}, 20000);
-
-  msg.innerHTML = `<h2>Ton score final : ${score} / ${questions.length}</h2><p>${appreciation}</p>`;
+  msg.innerHTML = `<h2>Score final : ${score}/${questions.length}</h2><p>${appreciation}</p><p>🔄 Redémarrage dans 20 secondes...</p>`;
   msg.style.display = "block";
+
+  setTimeout(() => {
+    resetGame();
+  }, 20000);
+}
+
+function resetGame() {
+  current = 0;
+  score = 0;
+  document.getElementById("score").innerText = score;
+  document.getElementById("final-message").style.display = "none";
+  document.getElementById("reset-btn").style.display = "none";
+  document.getElementById("question-container").style.display = "block";
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("explanation").innerText = "";
+  loadQuestion();
 }
 
 window.onload = loadQuestion;
